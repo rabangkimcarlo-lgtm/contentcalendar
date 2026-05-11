@@ -1,17 +1,17 @@
 const users = { 'admin': 'admin123', 'client1': 'pass123' };
-let currentUser = localStorage.getItem('currentUser');
 let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+let currentUser = localStorage.getItem('currentUser');
 
-// 1. Auth Flow
+// Auth Init
+if (currentUser) initDashboard();
+
 document.getElementById('loginForm').onsubmit = (e) => {
     e.preventDefault();
     const u = document.getElementById('username').value;
     const p = document.getElementById('password').value;
-    if(users[u] === p) {
+    if (users[u] === p) {
         localStorage.setItem('currentUser', u);
         location.reload();
-    } else {
-        document.getElementById('errorMessage').textContent = "Access Denied. Check credentials.";
     }
 };
 
@@ -20,56 +20,50 @@ document.getElementById('logoutBtn').onclick = () => {
     location.reload();
 };
 
-// 2. Initialization
-function init() {
-    if(!currentUser) return;
+function initDashboard() {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
-    document.getElementById('currentUserDisplay').textContent = `Hi, ${currentUser}`;
+    document.getElementById('currentUserDisplay').textContent = currentUser;
+    document.getElementById('avatarLetter').textContent = currentUser[0].toUpperCase();
     
-    if(currentUser === 'admin') document.getElementById('adminSection').classList.remove('hidden');
-    
-    renderAll();
+    if (currentUser !== 'admin') {
+        document.getElementById('adminOnlyAction').classList.add('hidden');
+    }
+    renderContent();
 }
 
-function renderAll() {
+function renderContent() {
     const myTasks = currentUser === 'admin' ? tasks : tasks.filter(t => t.client === currentUser);
     
-    // Render Kanban
+    // Kanban Render
     const cols = { upcoming: 'upcomingTasks', current: 'currentTasks', finished: 'finishedTasks' };
     Object.values(cols).forEach(id => document.getElementById(id).innerHTML = '');
     
     myTasks.forEach(t => {
-        const card = `
+        const html = `
             <div class="task-card">
-                <span class="platform-tag ${t.platform}">${t.platform}</span>
-                <h4>${t.title}</h4>
-                <div class="pill-links" style="margin-top:10px; display:flex; gap:10px;">
-                    ${t.canvaLink ? `<a href="${t.canvaLink}" target="_blank" style="font-size:12px; color:blue; text-decoration:none">🎨 Canva</a>` : ''}
-                    ${t.postLink ? `<a href="${t.postLink}" target="_blank" style="font-size:12px; color:green; text-decoration:none">🔗 Live Link</a>` : ''}
+                <div style="font-size: 0.7rem; color: var(--primary); font-weight: 800; margin-bottom: 0.5rem;">${t.platform.toUpperCase()}</div>
+                <h4 style="margin-bottom: 1rem;">${t.title}</h4>
+                <div style="display: flex; gap: 10px;">
+                    ${t.canvaLink ? `<a href="${t.canvaLink}" target="_blank" style="text-decoration:none; font-size:12px;">🎨 Canva</a>` : ''}
+                    ${t.postLink ? `<a href="${t.postLink}" target="_blank" style="text-decoration:none; font-size:12px;">🔗 Post</a>` : ''}
                 </div>
             </div>`;
-        document.getElementById(cols[t.status]).insertAdjacentHTML('beforeend', card);
+        document.getElementById(cols[t.status]).insertAdjacentHTML('beforeend', html);
     });
 
-    // Render Calendar
+    // Calendar Render
     const grid = document.getElementById('calendarGrid');
     grid.innerHTML = '';
-    const now = new Date();
-    document.getElementById('calendarTitle').textContent = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-    
-    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    for(let i = 1; i <= days; i++) {
-        const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-        const dayTasks = myTasks.filter(t => t.date === dateStr);
-        
-        let taskHTML = dayTasks.map(t => `<div style="font-size:8px; background:#eef2ff; padding:2px; margin-top:2px; border-radius:3px">${t.title}</div>`).join('');
-        
-        grid.innerHTML += `<div class="calendar-day"><span style="font-size:10px; font-weight:700; color:#cbd5e1">${i}</span>${taskHTML}</div>`;
+    for(let i=1; i<=30; i++) {
+        grid.innerHTML += `<div class="calendar-day"><span style="font-size:11px; opacity:0.5">${i}</span></div>`;
     }
 }
 
-// 3. New Task Logic
+function toggleTaskForm() {
+    document.getElementById('taskFormOverlay').classList.toggle('hidden');
+}
+
 document.getElementById('taskForm').onsubmit = (e) => {
     e.preventDefault();
     tasks.push({
@@ -83,23 +77,23 @@ document.getElementById('taskForm').onsubmit = (e) => {
         status: document.getElementById('taskStatus').value
     });
     localStorage.setItem('tasks', JSON.stringify(tasks));
-    renderAll();
-    e.target.reset();
+    toggleTaskForm();
+    renderContent();
 };
 
-// 4. Tab Switching
-document.getElementById('btnListView').onclick = () => {
-    document.getElementById('listView').classList.remove('hidden');
-    document.getElementById('calendarView').classList.add('hidden');
-    document.getElementById('btnListView').classList.add('active');
-    document.getElementById('btnCalendarView').classList.remove('active');
-};
-
+// View Switch
 document.getElementById('btnCalendarView').onclick = () => {
-    document.getElementById('calendarView').classList.remove('hidden');
     document.getElementById('listView').classList.add('hidden');
+    document.getElementById('calendarView').classList.remove('hidden');
     document.getElementById('btnCalendarView').classList.add('active');
     document.getElementById('btnListView').classList.remove('active');
+    document.getElementById('viewTitle').textContent = "Monthly Schedule";
 };
 
-init();
+document.getElementById('btnListView').onclick = () => {
+    document.getElementById('calendarView').classList.add('hidden');
+    document.getElementById('listView').classList.remove('hidden');
+    document.getElementById('btnListView').classList.add('active');
+    document.getElementById('btnCalendarView').classList.remove('active');
+    document.getElementById('viewTitle').textContent = "Workflow Overview";
+};
