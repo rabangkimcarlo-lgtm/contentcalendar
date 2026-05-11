@@ -3,25 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Manager Pro</title>
+    <title>Nexus Content Planner</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="bg-blur"></div>
+
     <div id="loginScreen" class="screen">
         <div class="login-container">
-            <h1 class="brand-logo">ContentPlanner<span>.io</span></h1>
-            <div class="login-box modern-card">
-                <h2>Client Portal Login</h2>
+            <div class="login-brand">
+                <div class="logo-icon">N</div>
+                <h1>Nexus<span>Planner</span></h1>
+            </div>
+            <div class="login-box glass-card">
+                <h2>Welcome Back</h2>
+                <p>Enter your credentials to manage your feed</p>
                 <form id="loginForm">
                     <div class="input-group">
                         <label>Username</label>
-                        <input type="text" id="username" placeholder="Your brand name" required>
+                        <input type="text" id="username" placeholder="e.g. brandname" required>
                     </div>
                     <div class="input-group">
                         <label>Password</label>
                         <input type="password" id="password" placeholder="••••••••" required>
                     </div>
-                    <button type="submit" class="btn-primary">Sign In</button>
+                    <button type="submit" class="btn-primary main-login-btn">Launch Dashboard</button>
                 </form>
                 <p id="errorMessage" class="error-text"></p>
             </div>
@@ -29,26 +36,27 @@
     </div>
 
     <div id="dashboard" class="screen hidden">
-        <header class="main-header">
+        <header class="glass-header">
             <div class="header-inner">
-                <div class="logo">ContentPlanner</div>
-                <div class="header-actions">
-                    <span id="currentUserDisplay" class="user-pill"></span>
-                    <button id="logoutBtn" class="btn-outline">Logout</button>
+                <div class="logo-small">N</div>
+                <div class="nav-links">
+                    <button id="btnListView" class="nav-tab active">Overview</button>
+                    <button id="btnCalendarView" class="nav-tab">Monthly Calendar</button>
+                </div>
+                <div class="user-controls">
+                    <span id="currentUserDisplay" class="user-tag"></span>
+                    <button id="logoutBtn" class="btn-logout">Logout</button>
                 </div>
             </div>
         </header>
 
         <main class="container">
-            <div class="view-nav">
-                <button id="btnListView" class="tab-btn active">List View</button>
-                <button id="btnCalendarView" class="tab-btn">Monthly Calendar</button>
-            </div>
-
-            <section id="adminSection" class="modern-card hidden">
-                <h3>Schedule New Content</h3>
-                <form id="taskForm" class="grid-form">
-                    <div class="form-row">
+            <section id="adminSection" class="glass-card hidden creation-tool">
+                <div class="card-header">
+                    <h3>✨ Create New Content</h3>
+                </div>
+                <form id="taskForm" class="modern-form">
+                    <div class="form-grid">
                         <input type="text" id="taskTitle" placeholder="Post Title" required>
                         <input type="text" id="clientName" placeholder="Client Username" required>
                         <input type="date" id="taskDate" required>
@@ -56,43 +64,46 @@
                             <option value="instagram">Instagram</option>
                             <option value="tiktok">TikTok</option>
                             <option value="linkedin">LinkedIn</option>
+                            <option value="youtube">YouTube</option>
                         </select>
                     </div>
-                    <div class="form-row">
+                    <div class="form-grid bottom-row">
                         <input type="url" id="canvaLink" placeholder="Canva URL">
                         <input type="url" id="postLink" placeholder="Live Post URL">
                         <select id="taskStatus">
-                            <option value="upcoming">Upcoming</option>
-                            <option value="current">Current</option>
-                            <option value="finished">Finished</option>
+                            <option value="upcoming">🗓️ Upcoming</option>
+                            <option value="current">⚡ In Progress</option>
+                            <option value="finished">✅ Published</option>
                         </select>
-                        <button type="submit" class="btn-primary">Add Task</button>
+                        <button type="submit" class="btn-primary">Schedule Post</button>
                     </div>
                 </form>
             </section>
 
-            <div id="listView">
-                <div class="kanban-board">
-                    <div class="column">
-                        <h4>Upcoming</h4>
-                        <div id="upcomingTasks" class="task-list"></div>
+            <div id="listView" class="view-content">
+                <div class="kanban">
+                    <div class="kanban-col">
+                        <div class="col-title">UPCOMING</div>
+                        <div id="upcomingTasks" class="drop-zone"></div>
                     </div>
-                    <div class="column">
-                        <h4>In Progress</h4>
-                        <div id="currentTasks" class="task-list"></div>
+                    <div class="kanban-col">
+                        <div class="col-title">IN PROGRESS</div>
+                        <div id="currentTasks" class="drop-zone"></div>
                     </div>
-                    <div class="column">
-                        <h4>Published</h4>
-                        <div id="finishedTasks" class="task-list"></div>
+                    <div class="kanban-col">
+                        <div class="col-title">PUBLISHED</div>
+                        <div id="finishedTasks" class="drop-zone"></div>
                     </div>
                 </div>
             </div>
 
-            <div id="calendarView" class="hidden">
-                <div class="calendar-header">
-                    <h2 id="calendarTitle">Month</h2>
+            <div id="calendarView" class="view-content hidden">
+                <div class="calendar-wrapper glass-card">
+                    <div class="calendar-header">
+                        <h2 id="calendarTitle">Month</h2>
+                    </div>
+                    <div id="calendarGrid" class="calendar-grid"></div>
                 </div>
-                <div id="calendarGrid" class="calendar-grid"></div>
             </div>
         </main>
     </div>
