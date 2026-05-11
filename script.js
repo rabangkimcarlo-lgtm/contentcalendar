@@ -1,257 +1,128 @@
-// ===== USER DATABASE =====
-// In production, use a real backend/database
+// 1. User Database
 const users = {
-    'admin': 'admin123',   // Your master account
-    'brand_a': 'pass123',  // Client account 1
-    'brand_b': 'pass456'   // Client account 2
+    'admin': 'admin123',
+    'client1': 'pass123',
+    'client2': 'pass456'
 };
 
-// ===== GLOBAL VARIABLES =====
 let currentUser = localStorage.getItem('currentUser');
 let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
-// ===== INITIALIZATION =====
-if (currentUser) {
-    showDashboard();
-} else {
-    showLogin();
-}
-
-// ===== LOGIN FUNCTIONALITY =====
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+// 2. Auth Logic
+document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
+    const u = document.getElementById('username').value;
+    const p = document.getElementById('password').value;
     
-    if (users[username] && users[username] === password) {
-        localStorage.setItem('currentUser', username);
-        currentUser = username;
-        showToast('Login successful! Welcome ' + username, 'success');
-        setTimeout(() => {
-            showDashboard();
-        }, 500);
+    if(users[u] && users[u] === p) {
+        currentUser = u;
+        localStorage.setItem('currentUser', u);
+        location.reload();
     } else {
-        document.getElementById('errorMessage').textContent = '❌ Invalid username or password';
-        showToast('Login failed! Please check your credentials', 'error');
+        document.getElementById('errorMessage').textContent = "Invalid Credentials";
     }
 });
 
-// ===== LOGOUT FUNCTIONALITY =====
-document.getElementById('logoutBtn').addEventListener('click', function() {
-    if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('currentUser');
-        currentUser = null;
-        showToast('Logged out successfully', 'success');
-        setTimeout(() => {
-            showLogin();
-        }, 500);
-    }
-});
+document.getElementById('logoutBtn').onclick = () => {
+    localStorage.removeItem('currentUser');
+    location.reload();
+};
 
-// ===== SCREEN MANAGEMENT =====
-function showLogin() {
-    document.getElementById('loginScreen').classList.remove('hidden');
-    document.getElementById('dashboard').classList.add('hidden');
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('errorMessage').textContent = '';
-}
-
-function showDashboard() {
+// 3. View Logic
+function init() {
+    if(!currentUser) return;
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
-    document.getElementById('currentUser').textContent = `👤 ${currentUser}`;
-    loadTasks();
-    updateStatistics();
+    document.getElementById('currentUserDisplay').textContent = `👤 ${currentUser}`;
+    
+    if(currentUser === 'admin') document.getElementById('adminSection').classList.remove('hidden');
+    
+    renderList();
+    renderCalendar();
 }
 
-// ===== TASK MANAGEMENT =====
-
-// Add Task
-document.getElementById('taskForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const task = {
-        id: Date.now(),
-        title: document.getElementById('taskTitle').value.trim(),
-        client: document.getElementById('clientName').value.trim(),
-        description: document.getElementById('taskDescription').value.trim(),
-        date: document.getElementById('taskDate').value,
-        status: document.getElementById('taskStatus').value,
-        createdBy: currentUser,
-        createdAt: new Date().toISOString()
-    };
-    
-    tasks.push(task);
-    saveTasks();
-    this.reset();
-    loadTasks();
-    updateStatistics();
-    showToast('✅ Task added successfully!', 'success');
-});
-
-// Save tasks to localStorage
-function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+function getMyTasks() {
+    return currentUser === 'admin' ? tasks : tasks.filter(t => t.client === currentUser);
 }
 
-// Load and display tasks
-function loadTasks(filter = 'all') {
-    const upcomingTasks = document.getElementById('upcomingTasks');
-    const currentTasks = document.getElementById('currentTasks');
-    const finishedTasks = document.getElementById('finishedTasks');
+// 4. Render Functions
+function renderList() {
+    const myTasks = getMyTasks();
+    const cols = { upcoming: 'upcomingTasks', current: 'currentTasks', finished: 'finishedTasks' };
     
-    // Clear all lists
-    upcomingTasks.innerHTML = '';
-    currentTasks.innerHTML = '';
-    finishedTasks.innerHTML = '';
+    Object.values(cols).forEach(id => document.getElementById(id).innerHTML = '');
     
-    // Filter tasks
-    const filteredTasks = filter === 'all' ? tasks : tasks.filter(t => t.status === filter);
-    
-    // Sort tasks by date
-    filteredTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
-    
-    // Separate tasks by status
-    const upcoming = filteredTasks.filter(t => t.status === 'upcoming');
-    const current = filteredTasks.filter(t => t.status === 'current');
-    const finished = filteredTasks.filter(t => t.status === 'finished');
-    
-    // Display tasks
-    if (upcoming.length === 0) {
-        upcomingTasks.innerHTML = '<div class="empty-state">No upcoming tasks</div>';
-    } else {
-        upcoming.forEach(task => upcomingTasks.appendChild(createTaskCard(task)));
-    }
-    
-    if (current.length === 0) {
-        currentTasks.innerHTML = '<div class="empty-state">No current tasks</div>';
-    } else {
-        current.forEach(task => currentTasks.appendChild(createTaskCard(task)));
-    }
-    
-    if (finished.length === 0) {
-        finishedTasks.innerHTML = '<div class="empty-state">No finished tasks</div>';
-    } else {
-        finished.forEach(task => finishedTasks.appendChild(createTaskCard(task)));
-    }
-    
-    // Update badges
-    document.getElementById('upcomingBadge').textContent = upcoming.length;
-    document.getElementById('currentBadge').textContent = current.length;
-    document.getElementById('finishedBadge').textContent = finished.length;
-}
-
-// Create task card element
-function createTaskCard(task) {
-    const card = document.createElement('div');
-    card.className = 'task-card';
-    
-    const statusEmoji = {
-        'upcoming': '📅',
-        'current': '🔄',
-        'finished': '✅'
-    };
-    
-    card.innerHTML = `
-        <h4>${task.title}</h4>
-        <div class="client">${task.client}</div>
-        ${task.description ? `<div class="description">${task.description}</div>` : ''}
-        <div class="date">📅 Due: ${formatDate(task.date)}</div>
-        <div class="task-actions">
-            <button class="status-btn" onclick="changeStatus(${task.id})">
-                ${statusEmoji[task.status]} Change Status
-            </button>
-            <button class="delete-btn" onclick="deleteTask(${task.id})">
-                🗑️ Delete
-            </button>
-        </div>
-    `;
-    return card;
-}
-
-// Format date
-function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', options);
-}
-
-// Change task status
-function changeStatus(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-        const statuses = ['upcoming', 'current', 'finished'];
-        const currentIndex = statuses.indexOf(task.status);
-        const newStatus = statuses[(currentIndex + 1) % statuses.length];
-        
-        task.status = newStatus;
-        saveTasks();
-        loadTasks();
-        updateStatistics();
-        
-        const statusNames = {
-            'upcoming': 'Upcoming',
-            'current': 'Current',
-            'finished': 'Finished'
-        };
-        showToast(`Task moved to ${statusNames[newStatus]}`, 'success');
-    }
-}
-
-// Delete task
-function deleteTask(taskId) {
-    if (confirm('Are you sure you want to delete this task?')) {
-        tasks = tasks.filter(t => t.id !== taskId);
-        saveTasks();
-        loadTasks();
-        updateStatistics();
-        showToast('Task deleted successfully', 'success');
-    }
-}
-
-// Update statistics
-function updateStatistics() {
-    const upcoming = tasks.filter(t => t.status === 'upcoming').length;
-    const current = tasks.filter(t => t.status === 'current').length;
-    const finished = tasks.filter(t => t.status === 'finished').length;
-    
-    document.getElementById('upcomingCount').textContent = upcoming;
-    document.getElementById('currentCount').textContent = current;
-    document.getElementById('finishedCount').textContent = finished;
-}
-
-// ===== FILTER FUNCTIONALITY =====
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        loadTasks(this.dataset.filter);
+    myTasks.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'task-pill';
+        div.innerHTML = `
+            <strong>${t.title}</strong><br><small>${t.platform}</small>
+            <div class="pill-links">
+                ${t.canvaLink ? `<a href="${t.canvaLink}" target="_blank">Canva</a>` : ''}
+                ${t.postLink ? `<a href="${t.postLink}" target="_blank">Post</a>` : ''}
+            </div>
+        `;
+        document.getElementById(cols[t.status]).appendChild(div);
     });
-});
-
-// ===== TOAST NOTIFICATION =====
-function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.className = `toast show ${type}`;
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
 }
 
-// ===== SET MINIMUM DATE TO TODAY =====
-document.getElementById('taskDate').min = new Date().toISOString().split('T')[0];
+function renderCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+    const now = new Date();
+    document.getElementById('calendarTitle').textContent = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+    
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const myTasks = getMyTasks();
 
-// ===== KEYBOARD SHORTCUTS =====
-document.addEventListener('keydown', function(e) {
-    // Ctrl/Cmd + K to focus on task title
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        document.getElementById('taskTitle').focus();
+    for(let i = 1; i <= daysInMonth; i++) {
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+        const dayTasks = myTasks.filter(t => t.date === dateStr);
+        
+        const dayBox = document.createElement('div');
+        dayBox.className = 'calendar-day';
+        dayBox.innerHTML = `<div class="day-num">${i}</div>`;
+        
+        dayTasks.forEach(t => {
+            dayBox.innerHTML += `<div class="task-pill" style="font-size:9px">${t.title}</div>`;
+        });
+        grid.appendChild(dayBox);
     }
-});
+}
 
-console.log('✅ Content Calendar loaded successfully!');
-console.log('📝 Demo credentials: admin/admin123 or client1/pass123');
+// 5. Form Handling
+document.getElementById('taskForm').onsubmit = (e) => {
+    e.preventDefault();
+    const newTask = {
+        id: Date.now(),
+        title: document.getElementById('taskTitle').value,
+        client: document.getElementById('clientName').value,
+        date: document.getElementById('taskDate').value,
+        platform: document.getElementById('platformType').value,
+        canvaLink: document.getElementById('canvaLink').value,
+        postLink: document.getElementById('postLink').value,
+        status: document.getElementById('taskStatus').value
+    };
+    tasks.push(newTask);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    renderList();
+    renderCalendar();
+    e.target.reset();
+};
+
+// 6. Navigation
+document.getElementById('btnListView').onclick = () => {
+    document.getElementById('listView').classList.remove('hidden');
+    document.getElementById('calendarView').classList.add('hidden');
+    document.getElementById('btnListView').classList.add('active');
+    document.getElementById('btnCalendarView').classList.remove('active');
+};
+
+document.getElementById('btnCalendarView').onclick = () => {
+    document.getElementById('calendarView').classList.remove('hidden');
+    document.getElementById('listView').classList.add('hidden');
+    document.getElementById('btnCalendarView').classList.add('active');
+    document.getElementById('btnListView').classList.remove('active');
+};
+
+init();
