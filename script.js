@@ -1,9 +1,9 @@
 // ===== USER DATABASE =====
 // In production, use a real backend/database
 const users = {
-    'admin': 'admin123',
-    'client1': 'pass123',
-    'client2': 'pass456'
+    'admin': 'admin123',   // Your master account
+    'brand_a': 'pass123',  // Client account 1
+    'brand_b': 'pass456'   // Client account 2
 };
 
 // ===== GLOBAL VARIABLES =====
