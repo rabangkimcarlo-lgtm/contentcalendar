@@ -3,112 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Content Planner</title>
+    <title>Nexus Content Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="bg-blur"></div>
+    <div class="mesh-bg"></div>
 
-    <div id="loginScreen" class="screen">
-        <div class="login-container">
-            <div class="login-brand">
-                <div class="logo-icon">N</div>
+    <div id="loginScreen" class="screen flex-center">
+        <div class="glass-card login-box">
+            <div class="brand-area">
+                <div class="logo-orb"></div>
                 <h1>Nexus<span>Planner</span></h1>
+                <p>Content Management Refined</p>
             </div>
-            <div class="login-box glass-card">
-                <h2>Welcome Back</h2>
-                <p>Enter your credentials to manage your feed</p>
-                <form id="loginForm">
-                    <div class="input-group">
-                        <label>Username</label>
-                        <input type="text" id="username" placeholder="e.g. brandname" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Password</label>
-                        <input type="password" id="password" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" class="btn-primary main-login-btn">Launch Dashboard</button>
-                </form>
-                <p id="errorMessage" class="error-text"></p>
-            </div>
+            <form id="loginForm">
+                <div class="input-wrapper">
+                    <label>Brand Identity</label>
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-wrapper">
+                    <label>Access Key</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-glow">Enter Dashboard</button>
+            </form>
+            <p id="errorMessage" class="error-msg"></p>
         </div>
     </div>
 
     <div id="dashboard" class="screen hidden">
-        <header class="glass-header">
-            <div class="header-inner">
-                <div class="logo-small">N</div>
-                <div class="nav-links">
-                    <button id="btnListView" class="nav-tab active">Overview</button>
-                    <button id="btnCalendarView" class="nav-tab">Monthly Calendar</button>
-                </div>
-                <div class="user-controls">
-                    <span id="currentUserDisplay" class="user-tag"></span>
-                    <button id="logoutBtn" class="btn-logout">Logout</button>
-                </div>
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="logo-orb-sm"></div>
+                <nav>
+                    <button id="btnListView" class="nav-item active"><i>📊</i> Overview</button>
+                    <button id="btnCalendarView" class="nav-item"><i>📅</i> Calendar</button>
+                </nav>
             </div>
-        </header>
-
-        <main class="container">
-            <section id="adminSection" class="glass-card hidden creation-tool">
-                <div class="card-header">
-                    <h3>✨ Create New Content</h3>
-                </div>
-                <form id="taskForm" class="modern-form">
-                    <div class="form-grid">
-                        <input type="text" id="taskTitle" placeholder="Post Title" required>
-                        <input type="text" id="clientName" placeholder="Client Username" required>
-                        <input type="date" id="taskDate" required>
-                        <select id="platformType">
-                            <option value="instagram">Instagram</option>
-                            <option value="tiktok">TikTok</option>
-                            <option value="linkedin">LinkedIn</option>
-                            <option value="youtube">YouTube</option>
-                        </select>
-                    </div>
-                    <div class="form-grid bottom-row">
-                        <input type="url" id="canvaLink" placeholder="Canva URL">
-                        <input type="url" id="postLink" placeholder="Live Post URL">
-                        <select id="taskStatus">
-                            <option value="upcoming">🗓️ Upcoming</option>
-                            <option value="current">⚡ In Progress</option>
-                            <option value="finished">✅ Published</option>
-                        </select>
-                        <button type="submit" class="btn-primary">Schedule Post</button>
-                    </div>
-                </form>
-            </section>
-
-            <div id="listView" class="view-content">
-                <div class="kanban">
-                    <div class="kanban-col">
-                        <div class="col-title">UPCOMING</div>
-                        <div id="upcomingTasks" class="drop-zone"></div>
-                    </div>
-                    <div class="kanban-col">
-                        <div class="col-title">IN PROGRESS</div>
-                        <div id="currentTasks" class="drop-zone"></div>
-                    </div>
-                    <div class="kanban-col">
-                        <div class="col-title">PUBLISHED</div>
-                        <div id="finishedTasks" class="drop-zone"></div>
+            <div class="sidebar-bottom">
+                <div class="profile-card">
+                    <div class="avatar" id="avatarLetter">A</div>
+                    <div class="profile-info">
+                        <span id="currentUserDisplay">Admin</span>
+                        <button id="logoutBtn">Sign Out</button>
                     </div>
                 </div>
             </div>
+        </aside>
 
-            <div id="calendarView" class="view-content hidden">
-                <div class="calendar-wrapper glass-card">
-                    <div class="calendar-header">
-                        <h2 id="calendarTitle">Month</h2>
+        <main class="main-content">
+            <header class="dash-header">
+                <h2 id="viewTitle">Workflow Overview</h2>
+                <div class="header-actions" id="adminOnlyAction">
+                    <button class="btn-primary" onclick="toggleTaskForm()">+ New Content</button>
+                </div>
+            </header>
+
+            <div id="taskFormOverlay" class="overlay hidden">
+                <div class="glass-card form-card">
+                    <h3>Schedule Content</h3>
+                    <form id="taskForm">
+                        <div class="form-grid">
+                            <input type="text" id="taskTitle" placeholder="Post Topic" required>
+                            <input type="text" id="clientName" placeholder="Assign to Client User" required>
+                            <input type="date" id="taskDate" required>
+                            <select id="platformType">
+                                <option value="instagram">Instagram</option>
+                                <option value="tiktok">TikTok</option>
+                                <option value="linkedin">LinkedIn</option>
+                            </select>
+                            <input type="url" id="canvaLink" placeholder="Canva Edit URL">
+                            <input type="url" id="postLink" placeholder="Live Social Link">
+                            <select id="taskStatus">
+                                <option value="upcoming">Upcoming</option>
+                                <option value="current">In Progress</option>
+                                <option value="finished">Published</option>
+                            </select>
+                        </div>
+                        <div class="form-footer">
+                            <button type="button" class="btn-text" onclick="toggleTaskForm()">Cancel</button>
+                            <button type="submit" class="btn-primary">Save to Schedule</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="listView" class="view-panel">
+                <div class="kanban-grid">
+                    <div class="kanban-col">
+                        <div class="col-head"><span class="dot upcoming"></span> Upcoming</div>
+                        <div id="upcomingTasks" class="task-holder"></div>
                     </div>
+                    <div class="kanban-col">
+                        <div class="col-head"><span class="dot current"></span> In Progress</div>
+                        <div id="currentTasks" class="task-holder"></div>
+                    </div>
+                    <div class="kanban-col">
+                        <div class="col-head"><span class="dot finished"></span> Published</div>
+                        <div id="finishedTasks" class="task-holder"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="calendarView" class="view-panel hidden">
+                <div class="glass-card calendar-container">
                     <div id="calendarGrid" class="calendar-grid"></div>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="toast" class="toast"></div>
     <script src="script.js"></script>
 </body>
 </html>
