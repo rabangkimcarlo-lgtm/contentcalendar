@@ -478,12 +478,21 @@ function initApp(){
   const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');
   document.getElementById('reportFrom').value=`${y}-${m}-01`;
   document.getElementById('reportTo').value=now.toISOString().split('T')[0];
-  renderAll();
+  // pre-render all pages so switching is instant and nothing is blank
+  renderDashboard();renderCalendar();renderTasks(activeFilter);renderClients();renderReport();
+  // reset to dashboard view with correct nav highlight
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pg-dashboard').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navItems=document.querySelectorAll('.nav-item');
+  if(navItems[0])navItems[0].classList.add('active');
+  document.getElementById('pageTitle').textContent='Dashboard';
 }
 if(currentUser&&ACCOUNTS[currentUser]){
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  initApp();
+  // setTimeout(0) ensures all JS is parsed before initApp runs
+  setTimeout(()=>initApp(),0);
 }
 function renderAll(){renderDashboard();renderCalendar();renderTasks(activeFilter);renderClients();renderReport();}
 
@@ -494,7 +503,19 @@ function goPage(id,el){
   document.getElementById('pg-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el)el.classList.add('active');
+  else{
+    // highlight the correct nav item when called programmatically (e.g. on reload)
+    const navItems=document.querySelectorAll('.nav-item');
+    const order=['dashboard','calendar','tasks','clients','report'];
+    const idx=order.indexOf(id);
+    if(idx>-1&&navItems[idx])navItems[idx].classList.add('active');
+  }
   document.getElementById('pageTitle').textContent=pageTitles[id]||'';
+  // always re-render the page being shown so content is never stale
+  if(id==='dashboard')renderDashboard();
+  if(id==='calendar')renderCalendar();
+  if(id==='tasks')renderTasks(activeFilter);
+  if(id==='clients')renderClients();
   if(id==='report')renderReport();
 }
 
